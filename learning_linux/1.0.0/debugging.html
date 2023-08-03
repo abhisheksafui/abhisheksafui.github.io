@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Debugging the Linux Kernel :: My Notebook</title>
+    <link rel="canonical" href="https://abhisheksafui.github.io/learning_linux/1.0.0/debugging.html">
+    <meta name="generator" content="Antora 3.1.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+<link rel="stylesheet" href="../../_/css/extra.css">
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://abhisheksafui.github.io">My Notebook</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="#">Home</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="learning_linux" data-version="1.0.0">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="getting_started.html">The Linux Operating System</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="getting_started.html">Preparation for Kernel Hacking</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="compiling.html">Compiling the linux kernel</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="booting_vm.html">Booting the linux kernel in a Virtual Machine</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="debugging.html">Debugging the linux kernel</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Linux Operating System</span>
+    <span class="version">1.0.0</span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <a class="title" href="../../about/1.0.0/resume.html">About me</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../about/1.0.0/resume.html">1.0.0</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <a class="title" href="getting_started.html">The Linux Operating System</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="getting_started.html">1.0.0</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../about/1.0.0/resume.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="getting_started.html">The Linux Operating System</a></li>
+    <li><a href="debugging.html">Debugging the linux kernel</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="file:///home/abhi/code/hobby/antora/learning-linux-antora-doc/modules/ROOT/pages/debugging.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Debugging the Linux Kernel</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section discusses the steps to connect to the kernel debugger for debugging the kernel code. There are two ways of connecting to the kernel debugger: kdb and kgdb. The Linux Kernel has a debug core that is common to both kdb and kgdb.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_kdb_vs_kgdb"><a class="anchor" href="#_kdb_vs_kgdb"></a>KDB vs KGDB</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>kdb is a debugging tool that is not source code aware, but it provides a shell to perform kernel debugging, like dumping the kernel log buffer using dmesg (messages written by the kernel).</p>
+</div>
+<div class="paragraph">
+<p>kgdb(gdb), on the other hand, is a source code-aware tool that lets us peek into the kernel data structures, like what we can do with <code>gdb</code> for user space applications (with some limitations). But there are limitations of using kgdb on a complex system like the kernel since the entire system is halted, and interrupts and other time-critical events are delayed if we try to single-step through each line of the kernel code. Typically, we use kdb for simple tasks like dumping all available debugging information and moving on to kgdb if required.</p>
+</div>
+<div class="paragraph">
+<p>Some of the tasks that can be achieved with the kdb shell are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dump register or memory contents</p>
+</li>
+<li>
+<p>Change memory content</p>
+</li>
+<li>
+<p>Dump dmesg logs</p>
+</li>
+<li>
+<p>List all processes</p>
+</li>
+<li>
+<p>Backtrace any process</p>
+</li>
+<li>
+<p>Dump the ftrace buffer(s)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_kdb"><a class="anchor" href="#_using_kdb"></a>Using KDB</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To debug the Linux Kernel with the kdb shell, we need to compile the Linux Kernel with some flags enabled, which we explain in this section. After compilation, we boot the kernel in a qemu virtual machine and launch the kdb shell.</p>
+</div>
+<div class="sect2">
+<h3 id="_compiling_the_linux_kernel_with_debug_flags"><a class="anchor" href="#_compiling_the_linux_kernel_with_debug_flags"></a>Compiling the Linux Kernel with debug flags</h3>
+<div class="paragraph">
+<p>To debug the kernel using kdb we need to compile the kernel with following flags:. The mandatory configuration options for kdb are highlighted. The CONFIG_KGDB flag enables the Linux kernel debugger and the CONFIG_KGDB_KDB flag enables the kdb frontend to the kernel debugger. Other flags enable alternate ways of invoking the kdb shell.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>CONFIG_KGDB=y</p>
+</li>
+<li>
+<p>CONFIG_KGDB_KDB=y</p>
+</li>
+<li>
+<p>CONFIG_FRAME_POINTER=y	# For accurate stack back traces</p>
+</li>
+<li>
+<p>CONFIG_KGDB_SERIAL_CONSOLE=y</p>
+</li>
+<li>
+<p>CONFIG_KDB_KEYBOARD=y  #Applicable for KDB only, with PS/2 style keyboard as input</p>
+</li>
+<li>
+<p>CONFIG_MAGIC_SYSRQ=y  	# To enter kdb using MAGIC SYSRQ</p>
+</li>
+<li>
+<p>CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE=0x1</p>
+</li>
+<li>
+<p>CONFIG_MAGIC_SYSRQ_SERIAL=y</p>
+</li>
+<li>
+<p>CONFIG_MAGIC_SYSRQ_SERIAL_SEQUENCE=""</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To enable CONFIG_DEBUG_INFO go to <code>Kernel hacking &gt; Compile-time checks and compiler options &gt; Debug information</code> and select <code>Generate DWARF Version 4 debuginfo</code>.</p>
+</div>
+<div class="paragraph">
+<p>To enable CONFIG_FRAME_POINTER go to <code>Kernel hacking &gt; x86 Debugging &gt; Frame pointer unwinder</code> and select <code>Frame pointer unwinder</code>.</p>
+</div>
+<div class="paragraph">
+<p>To enable CONFIG_KGDB go to <code>Kernel hacking &gt; Kernel debugging</code> and select <code>KGDB: kernel debugger</code></p>
+</div>
+<div class="paragraph">
+<p>To search the exact location for any config option in make menuconfig, press <code>/</code> and type in the configuration option that you are looking for.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_boot_the_linux_kernel_and_invoking_the_kdb_shell"><a class="anchor" href="#_boot_the_linux_kernel_and_invoking_the_kdb_shell"></a>Boot the Linux Kernel and invoking the kdb shell</h3>
+<div class="paragraph">
+<p>Once the Linux Kernel is compiled with the required debug flags, boot the kernel in a qemu virtual machine as explained in <a href="booting_vm.html" class="xref page">Booting the Kernel directly in a Qemu Virtual Machine</a>. As the root user invoke the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo ttyS0 &gt; /sys/module/kgdboc/parameters/kgdboc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command may be executed from any terminal (ssh login terminal for example). But the kdb command will only work from ttyS0 which is the serial console. So, the next step is to log in to the serial console. use the following command to enter the console.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">virsh console &lt;vm-name&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press Enter to get the prompt. Login using root credentials. You may wait for a fault to happen or may enter kdb shell forcefully using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo g &gt; /proc/sysrq-trigger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Screenshot of invocation of kdb shell</div>
+<p><span class="image"><img src="_images/kdb_1.png" alt="kdb 1"></span></p>
+</div>
+<div class="paragraph">
+<p>Use the help command to list all commands available in the kdb shell.</p>
+</div>
+<div class="paragraph">
+<div class="title">Screenshot of kdb help</div>
+<p><span class="image"><img src="_images/kdb_help.png" alt="kdb help"></span></p>
+</div>
+<div class="paragraph">
+<p>In case you don’t get the kdb shell working, check the terminal using tty command.
+It should be same serial console as configured in kgdboc parameter.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <p>This page was built using the Antora default UI.</p>
+  <p>The source code for this UI is licensed under the terms of the MPL-2.0 license.</p>
+</footer>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
