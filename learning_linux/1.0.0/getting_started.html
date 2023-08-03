@@ -48,7 +48,7 @@
     <a class="nav-link" href="booting_vm.html">Booting the linux kernel in a Virtual Machine</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="attaching_gdb.html">Attaching GDB to the linux kernel</a>
+    <a class="nav-link" href="debugging.html">Debugging the linux kernel</a>
   </li>
 </ul>
   </li>
@@ -103,13 +103,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this document, we discuss the steps to get yourself ready for exploring the
-Linux Kernel. We will compile the Linux Kernel on a development host
-(laptop/desktop) and run the kernel in a Virtual Machine of the same architecture.
-In this document, we are using an x86_64 notebook running Ubuntu 22.04, for
-development and testing purposes. We use libvirt, a virtualization library
-that wraps QEMU and KVM, and exposes APIs to launch virtual machines.
-Virt-manager is a graphical user interface for configuring libvirt virtual machines.</p>
+<p>In this document, we discuss the steps to get yourself ready for exploring the Linux kernel. We will be compiling the Linux kernel on a development host (laptop/desktop) and running the kernel on a virtual machine (same architecture). We are using an x86_64 (64-bit x86 Intel/AMD) laptop running Ubuntu 22.04, for development and testing purposes. Additionally, we shall use libvirt, a virtualization library that manages the interface to the QEMU CPU emulator and KVM virtual machine. Specifically, it exposes APIs to launch virtual machines. The virt-manager is a graphical user interface for configuring libvirt virtual machines. The virsh command is the command line counterpart of virt-manager.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -120,7 +114,7 @@ Virt-manager is a graphical user interface for configuring libvirt virtual machi
 <td class="content">
 KVM(Kernel-based Virtual Machine) is a type 1 hypervisor that is part of the Linux
 kernel and supports virtualization of hardware containing virtualization
-extensions (Intel VT-x or AMD-V). It allows VMs direct access to the hardware
+extensions (Intel VT-x or AMD-V). It allows VMs to have  direct access to the hardware
 resources.
 </td>
 </tr>
