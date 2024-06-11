@@ -100,7 +100,74 @@
 </aside>
 <article class="doc">
 <h1 class="page">Mount, inspect, modify a qcow2 image</h1>
-
+<div class="paragraph">
+<p>While the VM is shut down, we perform the following steps to mount the hdd image and perform
+modifications as needed.</p>
+</div>
+<div class="paragraph">
+<p>This is a quick guide to mounting qcow2 disk images on your host.
+This is useful to reset passwords, edit files or recover something without the
+virtual machine actually running.</p>
+</div>
+<div class="paragraph">
+<p>Step 1 - Enable NBD (network block device module) on the host</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">modprobe nbd max_part=8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 2 - Connect the QCOW2 image as the network block device</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">qemu-nbd --connect=/dev/nbd0 /var/lib/vz/images/100/vm-100-disk-1.qcow2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 3 - Find the virtual machine partitions</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">fdisk /dev/nbd0 -l</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 4 - Mount the partition from the VM</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">mount /dev/nbd0p1 /mnt/somepoint/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 5 - After you are done, unmount and disconnect</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">umount /mnt/somepoint/
+qemu-nbd --disconnect /dev/nbd0
+rmmod nbd</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After mounting, we install headers as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">sudo make headers_install INSTALL_HDR_PATH= &lt;mount-point&gt;/usr/include</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To install modules:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-asciidoc hljs" data-lang="asciidoc">export INSTALL_PATH=&lt;mount-point&gt;/lib/modules/&lt;kernel-version&gt;/
+make modules_install</code></pre>
+</div>
+</div>
 </article>
   </div>
 </main>
